@@ -26,6 +26,7 @@ use std::task::{Context, Poll};
 /// ```
 #[derive(Default, Clone)]
 pub struct RedirectHTTPS {
+    disabled: bool,
     replacements: Vec<(String, String)>,
 }
 
@@ -47,8 +48,14 @@ impl RedirectHTTPS {
     /// ```
     pub fn with_replacements(replacements: &[(String, String)]) -> Self {
         RedirectHTTPS {
+            disabled: false,
             replacements: replacements.to_vec(),
         }
+    }
+
+    pub fn set_enabled(mut self, enabled: bool) -> Self {
+        self.disabled = !enabled;
+        self
     }
 }
 
@@ -66,6 +73,7 @@ where
     fn new_transform(&self, service: S) -> Self::Future {
         ok(RedirectHTTPSService {
             service,
+            disabled: self.disabled,
             replacements: self.replacements.clone(),
         })
     }
@@ -73,6 +81,7 @@ where
 
 pub struct RedirectHTTPSService<S> {
     service: S,
+    disabled: bool,
     replacements: Vec<(String, String)>,
 }
 
@@ -90,7 +99,7 @@ where
     }
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        if req.connection_info().scheme() == "https" {
+        if req.connection_info().scheme() == "https" || !self.disabled {
             Either::Left(self.service.call(req))
         } else {
             let host = req.connection_info().host().to_owned();
