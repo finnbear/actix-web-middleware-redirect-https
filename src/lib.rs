@@ -99,7 +99,7 @@ where
     }
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        if req.connection_info().scheme() == "https" || !self.disabled {
+        if req.connection_info().scheme() == "https" || self.disabled {
             Either::Left(self.service.call(req))
         } else {
             let host = req.connection_info().host().to_owned();
