@@ -2,7 +2,7 @@
 name = "actix-web-middleware-redirect-https"
 version = "3.0.1"
 description = "A middleware for actix-web which forwards all `http` requests to `https` with optional url string replacement."
-authors = ["Peter Trotman <petertrotman@gmail.com>"]
+authors = ["Peter Trotman <petertrotman@gmail.com>", "Finn Bear <finnbearone@gmail.com>"]
 edition = "2018"
 license = "MIT"
 documentation = "https://docs.rs/actix-web-middleware-redirect-https"
@@ -12,9 +12,6 @@ keywords = ["actix-web", "middleware", "redirect", "https", "ssl"]
 categories = ["web-programming", "web-programming::http-server"]
 
 [dependencies]
-actix-service = "1"
-actix-web = { version = "3", default-features = false }
+actix-service = "2.0.0"
+actix-web = { version = "4.0.0-beta.9", default-features = false }
 futures = "0.3"
-
-[badges]
-travis-ci = { repository = "https://travis-ci.org/petertrotman/actix-web-middleware-redirect-https", branch = "master" }

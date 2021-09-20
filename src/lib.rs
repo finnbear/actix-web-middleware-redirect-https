@@ -52,13 +52,12 @@ impl RedirectHTTPS {
     }
 }
 
-impl<S, B> Transform<S> for RedirectHTTPS
+impl<S> Transform<S, ServiceRequest> for RedirectHTTPS
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse, Error = Error>,
     S::Future: 'static,
 {
-    type Request = ServiceRequest;
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse;
     type Error = Error;
     type InitError = ();
     type Transform = RedirectHTTPSService<S>;
@@ -77,21 +76,20 @@ pub struct RedirectHTTPSService<S> {
     replacements: Vec<(String, String)>,
 }
 
-impl<S, B> Service for RedirectHTTPSService<S>
+impl<S> Service<ServiceRequest> for RedirectHTTPSService<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse, Error = Error>,
     S::Future: 'static,
 {
-    type Request = ServiceRequest;
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse;
     type Error = Error;
     type Future = Either<S::Future, Ready<Result<Self::Response, Self::Error>>>;
 
-    fn poll_ready(&mut self, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&self, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
         self.service.poll_ready(cx)
     }
 
-    fn call(&mut self, req: ServiceRequest) -> Self::Future {
+    fn call(&self, req: ServiceRequest) -> Self::Future {
         if req.connection_info().scheme() == "https" {
             Either::Left(self.service.call(req))
         } else {
@@ -101,12 +99,12 @@ where
             for (s1, s2) in self.replacements.iter() {
                 url = url.replace(s1, s2);
             }
-            Either::Right(ok(req.into_response(
+            Either::Right(ok(ServiceResponse::new(
+                req.into_parts().0,
                 HttpResponse::MovedPermanently()
-                    .header(http::header::LOCATION, url)
+                    .insert_header((http::header::LOCATION, url))
                     .finish()
-                    .into_body(),
-            )))
+          )))
         }
     }
 }
