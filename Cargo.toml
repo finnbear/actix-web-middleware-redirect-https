@@ -13,5 +13,5 @@ categories = ["web-programming", "web-programming::http-server"]
 
 [dependencies]
 actix-service = "2.0.0"
-actix-web = { version = "4.0.0-beta.10", default-features = false }
+actix-web = { version = "4.0.0-beta.12", default-features = false }
 futures = "0.3"
